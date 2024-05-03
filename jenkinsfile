@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Build') {
+            steps {
+               echo "stage1: Building the code using Maven"
+               // add actual build steps here
+            }
+        }
+        stage('Unit and Integration Tests') {
+            steps {
+                echo "stage2: Running unit and integration tests"
+            }
+        }
+        stage('Code Analysis') {
+            steps {
+                echo " stage3: Code analysis"
+            }
+        }
+        stage('Security Scan') {
+            steps {
+                // Use OWASP ZAP for security scanning
+               echo "stage4: performing security scan"
+            }
+        }
+        stage('Deploy to Staging') {
+            steps {
+                // Use Jenkins SSH Plugin to deploy
+                echo "stage5: deploying to staging server"
+            }
+        }
+        stage('Integration Tests on Staging') {
+            steps {
+                // Run integration tests on staging
+                echo "stage6: running integration tests on staging"
+            }
+        }
+        stage('Deploy to Production') {
+            steps {
+                // Use Jenkins SSH Plugin to deploy
+                echo "stage7: deploying to production"
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "pipeline succeeded"
+            emailext ( to: 's224041382@deakin.edu.au',
+                        subject: 'Pipeline Success',
+                      body: 'The pipeline has completed successfully.'
+            )
+                      
+        }
+        failure {
+            // Send notification email on failure
+            echo "pipeline failed"
+            emailext (to: 's224041382@deakin.edu.au',
+                        subject: 'Pipeline Failure',
+                      body: 'The pipeline has failed. Please check the logs.'
+                      
+                      )
+        }
+    }
+}
