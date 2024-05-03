@@ -1,66 +1,73 @@
 pipeline {
     agent any
     
+    tools {
+        // Define Maven tool installation
+        maven 'Maven'
+    }
+    
     stages {
         stage('Build') {
             steps {
-                sh 'mvn clean package' // Assuming Maven is used for building
+                // Compile and package code using Maven
+                sh 'mvn clean package'
             }
         }
         stage('Unit and Integration Tests') {
             steps {
-                sh 'mvn test' // Assuming Maven is used for running tests
+                // Run unit tests
+                sh 'mvn test'
                 // Run integration tests
+                sh 'mvn integration-test'
             }
         }
         stage('Code Analysis') {
             steps {
-                // Integrate a code analysis tool like SonarQube
-                // For example:
-                sh 'sonar-scanner' // Assuming SonarQube Scanner is configured
+                // Integrate SonarQube for code analysis
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn sonar:sonar'
+                }
             }
         }
         stage('Security Scan') {
             steps {
-                // Perform security scan using a tool like OWASP Dependency-Check
-                // For example:
-                sh 'dependency-check.sh --scan . --format HTML --out reports'
+                // Perform security scan using OWASP Dependency-Check
+                sh 'mvn dependency-check:check'
             }
         }
         stage('Deploy to Staging') {
             steps {
-                // Deploy to staging server using a deployment tool like Ansible or AWS CodeDeploy
-                // For example:
-                sh 'ansible-playbook deploy-staging.yml'
+                // Deploy to staging server using SSH or AWS CLI
+                sh 'scp target/app.jar user@staging-server:/path/to/deploy'
             }
         }
         stage('Integration Tests on Staging') {
             steps {
-                // Run integration tests on the staging environment
-                // For example:
-                sh 'curl http://staging-server:port/health-check'
+                // Run integration tests on staging environment
+                sh 'run_integration_tests.sh'
             }
         }
         stage('Deploy to Production') {
             steps {
-                // Deploy to production server
-                // For example:
-                sh 'ansible-playbook deploy-production.yml'
+                // Deploy to production server using SSH or AWS CLI
+                sh 'scp target/app.jar user@production-server:/path/to/deploy'
             }
         }
     }
     
     post {
         success {
+            // Send notification email on success
             emailext subject: "Pipeline Success",
-                      body: "Your Jenkins pipeline ran successfully.",
-                      to: "sribhavana27@gmail.com",
+                      body: "The pipeline has completed successfully.",
+                      to: "your@email.com",
                       attachLog: true
         }
         failure {
+            // Send notification email on failure
             emailext subject: "Pipeline Failure",
-                      body: "Your Jenkins pipeline failed. Please check the logs.",
-                      to: "sribhavana27@gmail.com",
+                      body: "The pipeline has failed. Please check logs for details.",
+                      to: "your@email.com",
                       attachLog: true
         }
     }
