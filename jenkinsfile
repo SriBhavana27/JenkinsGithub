@@ -4,63 +4,64 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-               echo "stage1: Building the code using Maven"
-               // add actual build steps here
+                sh 'mvn clean package' // Assuming Maven is used for building
             }
         }
         stage('Unit and Integration Tests') {
             steps {
-                echo "stage2: Running unit and integration tests"
+                sh 'mvn test' // Assuming Maven is used for running tests
+                // Run integration tests
             }
         }
         stage('Code Analysis') {
             steps {
-                echo " stage3: Code analysis"
+                // Integrate a code analysis tool like SonarQube
+                // For example:
+                sh 'sonar-scanner' // Assuming SonarQube Scanner is configured
             }
         }
         stage('Security Scan') {
             steps {
-                // Use OWASP ZAP for security scanning
-               echo "stage4: performing security scan"
+                // Perform security scan using a tool like OWASP Dependency-Check
+                // For example:
+                sh 'dependency-check.sh --scan . --format HTML --out reports'
             }
         }
         stage('Deploy to Staging') {
             steps {
-                // Use Jenkins SSH Plugin to deploy
-                echo "stage5: deploying to staging server"
+                // Deploy to staging server using a deployment tool like Ansible or AWS CodeDeploy
+                // For example:
+                sh 'ansible-playbook deploy-staging.yml'
             }
         }
         stage('Integration Tests on Staging') {
             steps {
-                // Run integration tests on staging
-                echo "stage6: running integration tests on staging"
+                // Run integration tests on the staging environment
+                // For example:
+                sh 'curl http://staging-server:port/health-check'
             }
         }
         stage('Deploy to Production') {
             steps {
-                // Use Jenkins SSH Plugin to deploy
-                echo "stage7: deploying to production"
+                // Deploy to production server
+                // For example:
+                sh 'ansible-playbook deploy-production.yml'
             }
         }
     }
     
     post {
         success {
-            echo "pipeline succeeded"
-            emailext ( to: 'sribhavana27@gmail.com',
-                        subject: 'Pipeline Success',
-                      body: 'The pipeline has completed successfully.'
-            )
-                      
+            emailext subject: "Pipeline Success",
+                      body: "Your Jenkins pipeline ran successfully.",
+                      to: "sribhavana27@gmail.com",
+                      attachLog: true
         }
         failure {
-            // Send notification email on failure
-            echo "pipeline failed"
-            emailext (to: 'sribhavana27@gmail.com',
-                        subject: 'Pipeline Failure',
-                      body: 'The pipeline has failed. Please check the logs.'
-                      
-                      )
+            emailext subject: "Pipeline Failure",
+                      body: "Your Jenkins pipeline failed. Please check the logs.",
+                      to: "sribhavana27@gmail.com",
+                      attachLog: true
         }
     }
 }
